@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/fortedigital/nextjs-cache-handler.git"
   },
-  "version": "1.1.2",
+  "version": "1.1.2-alpha-2",
   "type": "module",
   "license": "MIT",
   "description": "Next.js cache handlers",
@@ -45,23 +45,23 @@
     "lint:fix": "npm run format && npm run lint -- --fix"
   },
   "dependencies": {
-    "@neshca/cache-handler": "^1.7.3",
+    "@neshca/cache-handler": "^1.9.0",
     "cluster-key-slot": "1.1.2",
-    "lru-cache": "11.0.1"
+    "lru-cache": "11.1.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.11.1",
-    "@types/node": "22.7.4",
+    "@eslint/js": "^9.23.0",
+    "@types/node": "22.13.14",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.10.0",
-    "prettier": "^3.3.3",
-    "prettier-plugin-packagejson": "2.5.2",
+    "prettier": "^3.5.3",
+    "prettier-plugin-packagejson": "2.5.10",
     "rimraf": "6.0.1",
-    "tsup": "^8.3.0",
-    "tsx": "4.19.1",
-    "typescript": "^5.6.2",
-    "typescript-eslint": "^8.8.0"
+    "tsup": "^8.4.0",
+    "tsx": "4.19.3",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.28.0"
   },
   "peerDependencies": {
     "next": ">=13.5.1",
@@ -72,7 +72,7 @@
     "next14"
   ],
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.24.0"
+    "@rollup/rollup-linux-x64-gnu": "^4.37.0"
   },
   "files": [
     "dist"
