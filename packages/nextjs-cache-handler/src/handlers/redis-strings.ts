@@ -102,7 +102,7 @@ export default function createHandler({
       return;
     }
 
-    const deleteKeysOperation = client.unlink(
+    await client.unlink(
       getTimeoutRedisCommandOptions(timeoutMs),
       keysToDelete,
     );
@@ -120,7 +120,6 @@ export default function createHandler({
     );
 
     await Promise.all([
-      deleteKeysOperation,
       updateTtlOperation,
       updateTagsOperation,
     ]);
@@ -162,6 +161,11 @@ export default function createHandler({
       return;
     }
 
+    await client.unlink(
+      getTimeoutRedisCommandOptions(timeoutMs),
+      keysToDelete,
+    );
+
     const updateTtlOperation = client.hDel(
       {
         isolated: true,
@@ -180,13 +184,7 @@ export default function createHandler({
       tagsAndTtlToDelete,
     );
 
-    const deleteKeysOperation = client.unlink(
-      getTimeoutRedisCommandOptions(timeoutMs),
-      keysToDelete,
-    );
-
     await Promise.all([
-      deleteKeysOperation,
       updateTagsOperation,
       updateTtlOperation,
     ]);
@@ -251,6 +249,30 @@ export default function createHandler({
       let expireOperation: Promise<boolean> | undefined;
       const lifespan = cacheHandlerValue.lifespan;
 
+      const setTagsOperation =
+        cacheHandlerValue.tags.length > 0
+          ? client.hSet(
+              options,
+              keyPrefix + sharedTagsKey,
+              key,
+              JSON.stringify(cacheHandlerValue.tags),
+            )
+          : undefined;
+
+      const setSharedTtlOperation = lifespan
+        ? client.hSet(
+            options,
+            keyPrefix + sharedTagsTtlKey,
+            key,
+            lifespan.expireAt,
+          )
+        : undefined;
+
+        await Promise.all([
+          setTagsOperation,
+          setSharedTtlOperation,
+        ]);
+
       switch (keyExpirationStrategy) {
         case "EXAT": {
           setOperation = client.set(
@@ -284,31 +306,10 @@ export default function createHandler({
         }
       }
 
-      const setTagsOperation =
-        cacheHandlerValue.tags.length > 0
-          ? client.hSet(
-              options,
-              keyPrefix + sharedTagsKey,
-              key,
-              JSON.stringify(cacheHandlerValue.tags),
-            )
-          : undefined;
-
-      const setSharedTtlOperation = lifespan
-        ? client.hSet(
-            options,
-            keyPrefix + sharedTagsTtlKey,
-            key,
-            lifespan.expireAt,
-          )
-        : undefined;
-
-      await Promise.all([
-        setOperation,
-        expireOperation,
-        setTagsOperation,
-        setSharedTtlOperation,
-      ]);
+        await Promise.all([
+          setOperation,
+          expireOperation,
+        ]);
     },
     async revalidateTag(tag) {
       assertClientIsReady();
@@ -329,11 +330,12 @@ export default function createHandler({
       await Promise.all([revalidateTags(tag), revalidateSharedKeys()]);
     },
     async delete(key) {
+      await client.unlink(
+        getTimeoutRedisCommandOptions(timeoutMs),
+        keyPrefix + key,
+      );
+
       await Promise.all([
-        client.unlink(
-          getTimeoutRedisCommandOptions(timeoutMs),
-          keyPrefix + key,
-        ),
         client.hDel(keyPrefix + sharedTagsKey, key),
         client.hDel(keyPrefix + sharedTagsTtlKey, key),
       ]);

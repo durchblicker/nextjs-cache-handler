@@ -29,7 +29,7 @@
         "dist/redis-strings.d.ts"
       ],
       "buffer-string-decorator": [
-        "buffer-string-decorator.d.ts"
+        "dist/buffer-string-decorator.d.ts"
       ]
     }
   },
