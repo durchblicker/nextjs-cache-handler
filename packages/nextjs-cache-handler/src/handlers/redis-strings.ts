@@ -200,6 +200,21 @@ export default function createHandler({
         return null;
       }
 
+      const sharedTagKeyExists = await client.hExists(
+        getTimeoutRedisCommandOptions(timeoutMs),
+        keyPrefix + sharedTagsKey,
+        key,
+      );
+
+      if (!sharedTagKeyExists) {
+        await client.unlink(
+          getTimeoutRedisCommandOptions(timeoutMs),
+          keyPrefix + key,
+        );
+
+        return null;
+      }
+
       const combinedTags = new Set([...cacheValue.tags, ...implicitTags]);
 
       if (combinedTags.size === 0) {
