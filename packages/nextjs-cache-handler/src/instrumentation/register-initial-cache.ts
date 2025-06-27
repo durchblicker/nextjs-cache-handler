@@ -231,9 +231,13 @@ export async function registerInitialCache(
     router: Router,
     revalidate: Revalidate,
   ) {
-    const pathToRouteFiles = path.join(serverDistDir, router, cachePath);
-
     const isAppRouter = router === "app";
+    
+    if (isAppRouter && cachePath === "/") {
+      cachePath = "/index";
+    }
+
+    const pathToRouteFiles = path.join(serverDistDir, router, cachePath);
 
     let lastModified: number | undefined;
 
