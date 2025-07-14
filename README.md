@@ -7,8 +7,8 @@ Starting from version `2.0.0`, this package no longer depends on `@neshca/cache-
 
 ## Migration
 
-- [1.x.x → ^2.x.x](docs\migration\1_x_x__2_x_x.md)
-- [1.2.x -> ^1.3.x](docs\migration\1_2_x__1_3_x.md)
+- [1.x.x → ^2.x.x](https://github.com/fortedigital/nextjs-cache-handler/blob/master/docs/migration/1_x_x__2_x_x.md)
+- [1.2.x -> ^1.3.x](https://github.com/fortedigital/nextjs-cache-handler/blob/master/docs/migration/1_2_x__1_3_x.md)
 
 ## Installation
 
