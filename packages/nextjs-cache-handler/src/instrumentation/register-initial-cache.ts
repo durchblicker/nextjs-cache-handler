@@ -3,13 +3,17 @@ import path from "node:path";
 import { PRERENDER_MANIFEST, SERVER_DIRECTORY } from "next/constants";
 import type { PrerenderManifest } from "next/dist/build";
 import { CACHE_ONE_YEAR } from "next/dist/lib/constants";
-import { Revalidate } from "next/dist/server/lib/revalidate";
-import { CachedFetchValue } from "next/dist/server/response-cache";
+import {
+  CachedFetchValue,
+  CachedRouteValue,
+  IncrementalCachedAppPageValue,
+  IncrementalCachedPageValue,
+} from "next/dist/server/response-cache";
 import type { OutgoingHttpHeaders } from "http";
-import { getTagsFromHeaders } from "./helpers/getTagsFromHeaders";
+import { getTagsFromHeaders } from "../helpers/getTagsFromHeaders";
+import { Revalidate } from "../handlers/cache-handler.types";
 
-type CacheHandlerType =
-  typeof import("../handlers/next-15-cache-handler").Next15CacheHandler;
+type CacheHandlerType = typeof import("../handlers/cache-handler").CacheHandler;
 
 type NextRouteMetadata = {
   status: number | undefined;
@@ -68,7 +72,7 @@ export type RegisterInitialCacheOptions = {
  * ```js
  * export async function register() {
  *  if (process.env.NEXT_RUNTIME === 'nodejs') {
- *    const { registerInitialCache } = await import('@neshca/cache-handler/instrumentation');
+ *    const { registerInitialCache } = await import('@fortedigital/nextjs-cache-handler/instrumentation');
  *    // Assuming that your CacheHandler configuration is in the root of the project and the instrumentation is in the src directory.
  *    // Please adjust the path accordingly.
  *    // CommonJS CacheHandler configuration is also supported.
@@ -198,20 +202,17 @@ export async function registerInitialCache(
     }
 
     try {
-      await cacheHandler.set(
-        cachePath,
-        {
-          kind: "APP_ROUTE",
-          body,
-          headers: meta.headers,
-          status: meta.status,
-        },
-        {
-          revalidate,
-          neshca_lastModified: lastModified,
-          tags: getTagsFromHeaders(meta.headers),
-        },
-      );
+      const value: CachedRouteValue = {
+        kind: "APP_ROUTE" as unknown as any,
+        body,
+        headers: meta.headers,
+        status: meta.status,
+      };
+      await cacheHandler.set(cachePath, value, {
+        revalidate,
+        internal_lastModified: lastModified,
+        tags: getTagsFromHeaders(meta.headers),
+      });
     } catch (error) {
       if (debug) {
         console.warn(
@@ -232,7 +233,7 @@ export async function registerInitialCache(
     revalidate: Revalidate,
   ) {
     const isAppRouter = router === "app";
-    
+
     if (isAppRouter && cachePath === "/") {
       cachePath = "/index";
     }
@@ -289,18 +290,22 @@ export async function registerInitialCache(
     }
 
     try {
-      await cacheHandler.set(
-        cachePath,
-        {
-          kind: "APP_PAGE",
-          html,
-          pageData,
-          postponed: meta?.postponed,
-          headers: meta?.headers,
-          status: meta?.status,
-        },
-        { revalidate, neshca_lastModified: lastModified },
-      );
+      const value: IncrementalCachedAppPageValue &
+        Pick<IncrementalCachedPageValue, "pageData"> = {
+        kind: "APP_PAGE" as unknown as any,
+        html,
+        pageData,
+        postponed: meta?.postponed,
+        headers: meta?.headers,
+        status: meta?.status,
+        rscData: undefined,
+        segmentData: undefined,
+      };
+
+      await cacheHandler.set(cachePath, value, {
+        revalidate,
+        internal_lastModified: lastModified,
+      });
     } catch (error) {
       if (debug) {
         console.warn(
@@ -394,7 +399,7 @@ export async function registerInitialCache(
     try {
       await cacheHandler.set(fetchCacheKey, fetchCache, {
         revalidate,
-        neshca_lastModified: lastModified,
+        internal_lastModified: lastModified,
         tags: fetchCache.tags,
       });
     } catch (error) {
