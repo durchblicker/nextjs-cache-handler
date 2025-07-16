@@ -12,7 +12,7 @@ updates:
         update-types: ["version-update:semver-major"]
     groups:
       all-updates:
-        applies-to: all
+        applies-to: security-updates
         patterns:
           - "*"
         update-types:
