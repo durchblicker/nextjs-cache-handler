@@ -5,6 +5,10 @@
 A caching utility built originally on top of [`@neshca/cache-handler`](https://www.npmjs.com/package/@neshca/cache-handler), providing additional cache handlers for specialized use cases with a focus on Redis-based caching.
 Starting from version `2.0.0`, this package no longer depends on `@neshca/cache-handler` and is fully maintained and compatible with Next.js 15 and onwards.
 
+## Documentation
+
+The documentation at [@neshca/cache-handler - caching-tools.github.io/next-shared-cache](https://caching-tools.github.io/next-shared-cache) is mostly still relevant, though some details may be outdated. New features or relevant changes are described below.
+
 ## Migration
 
 - [1.x.x → ^2.x.x](https://github.com/fortedigital/nextjs-cache-handler/blob/master/docs/migration/1_x_x__2_x_x.md)
