@@ -13,7 +13,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@fortedigital/nextjs-cache-handler": "^2.0.2",
+    "@fortedigital/nextjs-cache-handler": "^2.1.0-canary.11",
     "next": "^15.5.1-canary.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
