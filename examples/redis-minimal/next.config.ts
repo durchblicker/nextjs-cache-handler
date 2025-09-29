@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
       : undefined,
   cacheMaxMemorySize: 0, // disable default in-memory caching
   experimental: {
-    ppr: "incremental",
+    //ppr: "incremental",
   },
 };
 
