@@ -116,12 +116,47 @@ A Redis-based handler for key- and tag-based caching. Compared to the original i
 import createRedisHandler from "@fortedigital/nextjs-cache-handler/redis-strings";
 
 const redisHandler = await createRedisHandler({
-  client,
+  client: createClient({
+    url: process.env.REDIS_URL,
+  }),
   keyPrefix: "myApp:",
   sharedTagsKey: "myTags",
   sharedTagsTtlKey: "myTagTtls",
 });
 ```
+
+#### Redis Cluster (Experimental)
+
+```js
+import { createCluster } from "@redis/client";
+import createRedisHandler from "@fortedigital/nextjs-cache-handler/redis-strings";
+import { withAdapter } from "@fortedigital/nextjs-cache-handler/cluster/adapter";
+
+const { hostname: redisHostName } = new URL(process.env.REDIS_URL);
+redis = withAdapter(
+  createCluster({
+    rootNodes: [{ url: process.env.REDIS_URL }],
+
+    // optional if you use TLS and need to resolve shards' ip to proper hostname
+    nodeAddressMap(address) {
+      const [_, port] = address.split(":");
+
+      return {
+        host: redisHostName,
+        port: Number(port),
+      };
+    },
+  })
+);
+
+// after using withAdapter you can use redis cluster instance as parameter for createRedisHandler
+const redisCacheHandler = createRedisHandler({
+  client: redis,
+  keyPrefix: CACHE_PREFIX,
+});
+```
+
+**Note:** Redis Cluster support is currently experimental and may have limitations or unexpected bugs. Use it with caution.
 
 ---
 
@@ -186,7 +221,8 @@ Next 15 decided to change types of some properties from String to Buffer which c
 ```js
 import createBufferStringDecoratorHandler from "@fortedigital/nextjs-cache-handler/buffer-string-decorator";
 
-const bufferStringDecorator = createBufferStringDecoratorHandler(redisCacheHandler);
+const bufferStringDecorator =
+  createBufferStringDecoratorHandler(redisCacheHandler);
 ```
 
 ## Examples

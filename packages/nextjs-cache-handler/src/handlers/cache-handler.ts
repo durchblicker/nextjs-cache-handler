@@ -20,6 +20,8 @@ import {
   type GetIncrementalResponseCacheContext,
   type GetIncrementalFetchCacheContext,
   IncrementalCacheValue,
+  CachedFetchValue,
+  SetIncrementalFetchCacheContext,
 } from "next/dist/server/response-cache/types";
 import { resolveRevalidateValue } from "../helpers/resolveRevalidateValue";
 
@@ -221,6 +223,54 @@ export class CacheHandler implements NextCacheHandler {
     }
 
     return cacheHandlerValue;
+  }
+
+  static async #writeFetch(
+    cacheKey: string,
+    data: CachedFetchValue,
+    ctx: SetIncrementalFetchCacheContext,
+  ): Promise<void> {
+    try {
+      const fetchDataPath = path.join(
+        CacheHandler.#serverDistDir,
+        "..",
+        "cache",
+        "fetch-cache",
+        cacheKey,
+      );
+
+      await fsPromises.mkdir(path.dirname(fetchDataPath), {
+        recursive: true,
+      });
+
+      await fsPromises.writeFile(
+        fetchDataPath,
+        JSON.stringify({
+          ...data,
+          tags: ctx.fetchCache ? ctx.tags : [],
+        }),
+      );
+
+      if (CacheHandler.#debug) {
+        console.info(
+          "[CacheHandler] [handler: %s] [method: %s] [key: %s] %s",
+          "file system",
+          "set",
+          cacheKey,
+          "Successfully set value.",
+        );
+      }
+    } catch (error) {
+      if (CacheHandler.#debug) {
+        console.warn(
+          "[CacheHandler] [handler: %s] [method: %s] [key: %s] %s",
+          "file system",
+          "set",
+          cacheKey,
+          `Error: ${error}`,
+        );
+      }
+    }
   }
 
   static async #writePagesRouterPage(
@@ -610,13 +660,6 @@ export class CacheHandler implements NextCacheHandler {
         implicitTags: softTags ?? [],
       });
 
-    if (cachedData?.value?.kind === "APP_ROUTE") {
-      cachedData.value.body = Buffer.from(
-        cachedData.value.body.toString(),
-        "base64",
-      );
-    }
-
     if (!cachedData && CacheHandler.#fallbackFalseRoutes.has(cacheKey)) {
       cachedData = await CacheHandler.#readPagesRouterPage(cacheKey);
 
@@ -624,6 +667,15 @@ export class CacheHandler implements NextCacheHandler {
       if (cachedData) {
         await CacheHandler.#mergedHandler.set(cacheKey, cachedData);
       }
+    }
+
+    if (CacheHandler.#debug) {
+      console.info(
+        "[CacheHandler] [method: %s] [key: %s] %s",
+        "get",
+        cacheKey,
+        `Retrieving value ${cachedData ? "found" : "not found"}.`,
+      );
     }
 
     return cachedData ?? null;
@@ -675,18 +727,6 @@ export class CacheHandler implements NextCacheHandler {
         cacheHandlerValueTags = getTagsFromHeaders(value.headers ?? {});
         break;
       }
-      case "APP_ROUTE": {
-        // create a new object to avoid mutating the original value
-        value = {
-          // replace the body with a base64 encoded string to save space
-          body: value.body.toString("base64") as unknown as Buffer,
-          headers: value.headers,
-          kind: value.kind,
-          status: value.status,
-        };
-
-        break;
-      }
       default: {
         break;
       }
@@ -705,6 +745,14 @@ export class CacheHandler implements NextCacheHandler {
       await CacheHandler.#writePagesRouterPage(
         cacheKey,
         cacheHandlerValue.value as unknown as IncrementalCachedPageValue,
+      );
+    }
+
+    if (cacheHandlerValue.value?.kind === "FETCH") {
+      await CacheHandler.#writeFetch(
+        cacheKey,
+        cacheHandlerValue.value as unknown as CachedFetchValue,
+        ctx as SetIncrementalFetchCacheContext,
       );
     }
   }
