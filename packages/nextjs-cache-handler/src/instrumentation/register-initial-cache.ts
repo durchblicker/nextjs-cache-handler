@@ -25,6 +25,8 @@ type Router = "pages" | "app";
 
 const PRERENDER_MANIFEST_VERSION = 4;
 
+const DEFAULT_BUILD_DIR = ".next";
+
 /**
  * Options for the `registerInitialCache` instrumentation.
  */
@@ -95,7 +97,10 @@ export async function registerInitialCache(
   options: RegisterInitialCacheOptions = {},
 ) {
   const debug = typeof process.env.NEXT_PRIVATE_DEBUG_CACHE !== "undefined";
-  const nextJsPath = path.join(process.cwd(), options.buildDir ?? ".next");
+  const nextJsPath = path.join(
+    process.cwd(),
+    options.buildDir ?? DEFAULT_BUILD_DIR,
+  );
   const prerenderManifestPath = path.join(nextJsPath, PRERENDER_MANIFEST);
   const serverDistDir = path.join(nextJsPath, SERVER_DIRECTORY);
   const fetchCacheDir = path.join(nextJsPath, "cache", "fetch-cache");

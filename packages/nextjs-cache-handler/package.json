@@ -18,7 +18,7 @@
     "next",
     "redis"
   ],
-  "version": "2.1.1",
+  "version": "2.1.2",
   "type": "module",
   "license": "MIT",
   "description": "Next.js cache handlers",
@@ -92,7 +92,7 @@
     "lru-cache": "11.2.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.37.0",
+    "@eslint/js": "^9.38.0",
     "@types/jest": "^30.0.0",
     "@types/node": "22.16.5",
     "eslint": "^8.57.1",
@@ -116,7 +116,7 @@
     "next15"
   ],
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.52.4"
+    "@rollup/rollup-linux-x64-gnu": "^4.52.5"
   },
   "engines": {
     "node": ">=22.0.0"
